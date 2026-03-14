@@ -15,9 +15,10 @@
 
 package com.google.engedu.touringmusician;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
+
 import android.os.Bundle;
-import android.support.v7.widget.PopupMenu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -32,14 +33,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        LinearLayout layout = (LinearLayout) findViewById(R.id.top_layout);
+
+        LinearLayout layout = findViewById(R.id.top_layout);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT, 30.0f);
         map = new TourMap(this);
         map.setLayoutParams(params);
         layout.addView(map, 0);
-        final Button modeButton = (Button) findViewById(R.id.mode_selector);
+
+        final Button modeButton = findViewById(R.id.mode_selector);
         modeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onReset(View v) {
         map.reset();
-        TextView message = (TextView) findViewById(R.id.game_status);
+        TextView message = findViewById(R.id.game_status);
         if (message != null) {
             message.setText("Tap map to add new tour stops.");
         }

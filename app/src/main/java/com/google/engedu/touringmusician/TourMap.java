@@ -27,11 +27,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.Locale;
+
 public class TourMap extends View {
 
     private Bitmap mapImage;
-    private CircularLinkedList list = new CircularLinkedList();
-    private String insertMode = "Add";
+    private final CircularLinkedList list = new CircularLinkedList();
+    private String insertMode = "Beginning";
 
     public TourMap(Context context) {
         super(context);
@@ -44,39 +46,48 @@ public class TourMap extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawBitmap(mapImage, 0, 0, null);
-        Paint pointPaint = new Paint() , linePaint = new Paint();
+
+        Paint pointPaint = new Paint();
         pointPaint.setColor(Color.RED);
+        pointPaint.setAntiAlias(true);
+
+        Paint linePaint = new Paint();
         linePaint.setColor(Color.BLACK);
-        linePaint.setStrokeWidth((float) 3.5);
-        Point prevPoint = null, startPoint = null;
+        linePaint.setStrokeWidth(3.5f);
+        linePaint.setAntiAlias(true);
+
+        Point prevPoint = null;
+        Point startPoint = null;
         for (Point p : list) {
             canvas.drawCircle(p.x, p.y, 20, pointPaint);
-            if(startPoint == null) startPoint = p;
-            if(prevPoint != null) {
+            if (startPoint == null) {
+                startPoint = p;
+            }
+            if (prevPoint != null) {
                 canvas.drawLine(prevPoint.x, prevPoint.y, p.x, p.y, linePaint);
             }
             prevPoint = p;
-
         }
-        if(prevPoint != null)
+        if (prevPoint != null && startPoint != null) {
             canvas.drawLine(prevPoint.x, prevPoint.y, startPoint.x, startPoint.y, linePaint);
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Point p = new Point((int) event.getX(), (int)event.getY());
-                if (insertMode.equals("Closest")) {
+                Point p = new Point((int) event.getX(), (int) event.getY());
+                if ("Closest".equals(insertMode)) {
                     list.insertNearest(p);
-                } else if (insertMode.equals("Smallest")) {
+                } else if ("Smallest".equals(insertMode)) {
                     list.insertSmallest(p);
                 } else {
                     list.insertBeginning(p);
                 }
-                TextView message = (TextView) ((Activity) getContext()).findViewById(R.id.game_status);
+                TextView message = ((Activity) getContext()).findViewById(R.id.game_status);
                 if (message != null) {
-                    message.setText(String.format("Tour length is now %.2f", list.totalDistance()));
+                    message.setText(String.format(Locale.US, "Tour length is now %.2f", list.totalDistance()));
                 }
                 invalidate();
                 return true;

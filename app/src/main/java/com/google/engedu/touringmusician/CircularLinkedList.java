@@ -15,7 +15,6 @@
 
 package com.google.engedu.touringmusician;
 
-
 import android.graphics.Point;
 
 import java.util.Iterator;
@@ -25,7 +24,8 @@ public class CircularLinkedList implements Iterable<Point> {
     private class Node {
         Point point;
         Node prev, next;
-        Node (Point p){
+
+        Node(Point p) {
             this.point = p;
         }
     }
@@ -33,21 +33,23 @@ public class CircularLinkedList implements Iterable<Point> {
     private Node head = null;
 
     private float distanceBetween(Point from, Point to) {
-        return (float) Math.sqrt(Math.pow(from.y-to.y, 2) + Math.pow(from.x-to.x, 2));
+        return (float) Math.sqrt(Math.pow(from.y - to.y, 2) + Math.pow(from.x - to.x, 2));
     }
 
+    /**
+     * Computes the total tour distance by traversing the circular linked list.
+     * Returns 0 if the list is empty or contains only one node.
+     */
     public float totalDistance() {
-        float total = 0;
-        Point prevPoint;
-        Node curr = head;
-        if(head.next != head) {
-            prevPoint = curr.point;
-            do {
-                curr = curr.next;
-                total += distanceBetween(prevPoint, curr.point);
-                prevPoint = curr.point;
-            }while (curr != head);
+        if (head == null || head.next == head) {
+            return 0;
         }
+        float total = 0;
+        Node curr = head;
+        do {
+            total += distanceBetween(curr.point, curr.next.point);
+            curr = curr.next;
+        } while (curr != head);
         return total;
     }
 
@@ -66,53 +68,78 @@ public class CircularLinkedList implements Iterable<Point> {
 
     public void insertBeginning(Point p) {
         Node node = new Node(p);
-        if(head != null) {
+        if (head != null) {
             insertNode(node, head);
             head = node;
-        } else
+        } else {
             firstNode(node);
+        }
     }
 
+    /**
+     * Inserts a new point next to the nearest existing node in the tour.
+     * Chooses the side (before or after the nearest node) that is closer.
+     */
     public void insertNearest(Point p) {
-        Node node = new Node(p), best = null, curr = head;
-        double bestDis = Double.POSITIVE_INFINITY;
+        Node node = new Node(p);
         if (head == null) {
             firstNode(node);
-        } else {
-                do {
-                    curr = curr.next;
-                    if (distanceBetween(curr.point, p) < bestDis) {
-                        bestDis = distanceBetween(curr.point, p);
-                        best = curr;
-                    }
-                } while (curr != head);
-            if(distanceBetween(p, best.prev.point) < distanceBetween(p, best.next.point)) {
-                insertNode(node, best);
-            } else {
-                insertNode(node, best.next);
+            return;
+        }
+
+        Node best = head;
+        double bestDis = distanceBetween(head.point, p);
+        Node curr = head.next;
+        // Traverse all nodes including head to find the nearest one
+        while (curr != head) {
+            double dist = distanceBetween(curr.point, p);
+            if (dist < bestDis) {
+                bestDis = dist;
+                best = curr;
             }
+            curr = curr.next;
+        }
+
+        // Insert on the side of the nearest node that is closer to p
+        if (distanceBetween(p, best.prev.point) < distanceBetween(p, best.next.point)) {
+            insertNode(node, best);
+        } else {
+            insertNode(node, best.next);
         }
     }
 
+    /**
+     * Inserts a new point at the position that results in the smallest
+     * increase in total tour distance (cheapest insertion heuristic).
+     */
     public void insertSmallest(Point p) {
-        Node node = new Node(p), best = null, curr = head;
-        double distance = Double.POSITIVE_INFINITY;
-        if(head == null) {
+        Node node = new Node(p);
+        if (head == null) {
             firstNode(node);
-        } else if(head.next == head) {
-            insertNode(node, head);
-        } else{
-            do {
-                double dist = totalDistance() - distanceBetween(curr.point, curr.next.point);
-                dist += distanceBetween(p, curr.point) + distanceBetween(p, curr.next.point);
-                if(dist < distance) {
-                    distance = dist;
-                    best = curr.next;
-                }
-                curr = curr.next;
-            }while (curr != head);
-            insertNode(node, best);
+            return;
         }
+        if (head.next == head) {
+            insertNode(node, head);
+            return;
+        }
+
+        // Compute total distance once, then evaluate each edge replacement
+        float currentTotal = totalDistance();
+        Node best = null;
+        double bestIncrease = Double.POSITIVE_INFINITY;
+        Node curr = head;
+        do {
+            double increase = distanceBetween(p, curr.point)
+                    + distanceBetween(p, curr.next.point)
+                    - distanceBetween(curr.point, curr.next.point);
+            if (increase < bestIncrease) {
+                bestIncrease = increase;
+                best = curr.next;
+            }
+            curr = curr.next;
+        } while (curr != head);
+
+        insertNode(node, best);
     }
 
     public void reset() {
@@ -123,7 +150,7 @@ public class CircularLinkedList implements Iterable<Point> {
 
         Node current;
 
-        public CircularLinkedListIterator() {
+        CircularLinkedListIterator() {
             current = head;
         }
 
@@ -152,6 +179,4 @@ public class CircularLinkedList implements Iterable<Point> {
     public Iterator<Point> iterator() {
         return new CircularLinkedListIterator();
     }
-
-
 }
