@@ -37,6 +37,10 @@ public class CircularLinkedList implements Iterable<Point> {
     }
 
     public float totalDistance() {
+        if (head == null) {
+            return 0;
+        }
+        
         float total = 0;
         Point prevPoint;
         Node curr = head;
